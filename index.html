@@ -313,6 +313,7 @@
     }
 
     .target-name { flex: 1; color: var(--text); font-weight: 500; }
+    .target-pct { color: var(--accent); font-size: 0.8rem; font-weight: 600; min-width: 3.2em; text-align: right; }
     .target-dist { color: var(--muted); font-size: 0.8rem; }
 
     /* ── Entries card ── */
@@ -359,6 +360,13 @@
     input[readonly] {
       background: #f8fafc;
       color: var(--muted);
+    }
+
+    .round-length-display {
+      padding: 9px 11px;
+      font-size: 0.9rem;
+      color: var(--muted);
+      font-weight: 500;
     }
 
     button {
@@ -511,11 +519,11 @@
         </div>
         <div class="field">
           <label for="poolLength">Pool length (m)</label>
-          <input id="poolLength" type="number" min="1" step="1" placeholder="25" />
+          <input id="poolLength" type="number" min="1" step="1" placeholder="15" />
         </div>
         <div class="field">
           <label>Round length</label>
-          <input id="roundLength" type="text" readonly value="0m" />
+          <div id="roundLength" class="round-length-display">0m</div>
         </div>
       </div>
 
@@ -540,7 +548,7 @@
 
     let state = {
       name: '',
-      poolLength: 25,
+      poolLength: 15,
       entries: []
     };
 
@@ -572,7 +580,7 @@
         const parsed = JSON.parse(raw);
         if (!parsed || typeof parsed !== 'object') return;
         state.name = typeof parsed.name === 'string' ? parsed.name : '';
-        state.poolLength = Number.isFinite(Number(parsed.poolLength)) ? Math.max(1, Number(parsed.poolLength)) : 25;
+        state.poolLength = Number.isFinite(Number(parsed.poolLength)) ? Math.max(1, Number(parsed.poolLength)) : 15;
         state.entries = Array.isArray(parsed.entries)
           ? parsed.entries
               .map(e => ({
@@ -619,7 +627,7 @@
 
       refs.summaryDistance.textContent = fmtMeters(total);
       refs.swimmerNameBox.textContent = name;
-      refs.roundLength.value = fmtMeters(roundLength());
+      refs.roundLength.textContent = fmtMeters(roundLength());
       refs.heroHeadline.textContent = `${name}'s swimming progress:`;
 
       // Last achieved target
@@ -693,11 +701,13 @@
       const all = cumulativeTargets();
       all.forEach(t => {
         const done = total >= t.cumulative;
+        const pct = Math.min(100, Math.round((total / t.cumulative) * 100));
         const row = document.createElement('div');
         row.className = 'target-row';
         row.innerHTML = `
           <div class="target-check ${done ? 'done' : ''}">${done ? '✓' : ''}</div>
           <span class="target-name">${t.name}</span>
+          <span class="target-pct">${pct}%</span>
           <span class="target-dist">${fmtMeters(t.cumulative)}</span>`;
         refs.targetsList.appendChild(row);
       });
