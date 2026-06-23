@@ -303,7 +303,6 @@
       <div class="meta">
         <strong id="summaryName">Swimmer</strong>
         <span id="summaryDistance">0m total</span>
-        <span id="summaryPercent">0.0%</span>
       </div>
 
       <div class="grid">
@@ -343,7 +342,7 @@
       { name: 'Rocca E to W', distance: 8000 },
       { name: 'Rocca to Bardoliino', distance: 10000 },
       { name: 'Southern widht', distance: 17200 },
-      { name: 'Total length', distance: 51900 }
+      { name: 'Length N to S', distance: 51900 }
     ];
 
     let state = {
@@ -365,7 +364,6 @@
       targetTooltipBox: document.getElementById('targetTooltipBox'),
       summaryName: document.getElementById('summaryName'),
       summaryDistance: document.getElementById('summaryDistance'),
-      summaryPercent: document.getElementById('summaryPercent'),
       targetsList: document.getElementById('targetsList')
     };
 
@@ -418,13 +416,9 @@
 
     function updateSummary() {
       const total = totalDistance();
-      const all = cumulativeTargets();
-      const finalGoal = all[all.length - 1].cumulative;
-      const pct = Math.min(100, (total / finalGoal) * 100);
       const name = state.name.trim() || 'Swimmer';
       refs.summaryName.textContent = name;
       refs.summaryDistance.textContent = `${fmtMeters(total)} total`;
-      refs.summaryPercent.textContent = `${pct.toFixed(1)}% of ${fmtMeters(finalGoal)}`;
       refs.roundLength.value = fmtMeters(roundLength());
       refs.swimmerNameBox.textContent = name;
     }
