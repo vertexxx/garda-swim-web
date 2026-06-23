@@ -710,11 +710,7 @@
     }
 
     function cumulativeTargets() {
-      let sum = 0;
-      return TARGETS.map(t => {
-        sum += t.distance;
-        return { ...t, cumulative: sum };
-      });
+      return TARGETS.map(t => ({ ...t, cumulative: t.distance }));
     }
 
     function updateSummary() {
