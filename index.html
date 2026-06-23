@@ -43,13 +43,19 @@
 
     h1 { margin: 0 0 12px; font-size: 1.4rem; }
 
+    .progress-container {
+      position: relative;
+      padding-top: 30px;
+    }
+
     .wave-track {
       position: relative;
-      height: 72px;
-      border-radius: 36px;
+      height: 8px;
+      border-radius: 4px;
       background: #e8eef5;
       overflow: hidden;
       border: 1px solid #d6e1ef;
+      box-shadow: inset -120px 0 60px -20px #ffffff;
     }
 
     .wave-fill {
@@ -60,81 +66,62 @@
       width: 0%;
       max-width: 100%;
       transition: width 0.55s ease;
-      background: linear-gradient(180deg, #45b9ff 0%, var(--blue) 54%, var(--blue-dark) 100%);
+      background: linear-gradient(90deg, var(--blue-dark) 0%, var(--blue) 65%, #6dceff 100%);
       overflow: hidden;
     }
 
-    .wave-fill::before,
-    .wave-fill::after {
+    .wave-fill::before {
       content: "";
       position: absolute;
-      left: -200px;
-      width: 400px;
-      height: 160px;
-      background: rgba(255, 255, 255, 0.24);
-      border-radius: 42%;
-      animation: wave 6.5s linear infinite;
-      bottom: -110px;
+      inset: 0;
+      background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.45) 50%, transparent 100%);
+      background-size: 200% 100%;
+      animation: shimmer 2.5s ease-in-out infinite;
     }
 
     .wave-fill::after {
-      animation-duration: 4.6s;
-      opacity: 0.34;
-      bottom: -116px;
+      display: none;
     }
 
-    @keyframes wave {
-      0% { transform: translateX(0) rotate(0deg); }
-      100% { transform: translateX(400px) rotate(360deg); }
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
     }
-
-    .marker {
-      position: absolute;
-      top: 9px;
-      transform: translateX(-50%);
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      border: 2px solid rgba(255, 255, 255, 0.85);
-      transition: all 0.28s ease;
-      box-shadow: 0 1px 6px rgba(0, 0, 0, 0.12);
-      pointer-events: none;
-    }
-
-    .marker.upcoming { background: var(--gray); }
-    .marker.achieved { background: var(--green); }
-    .marker.old { width: 9px; height: 9px; top: 14px; border-width: 1px; }
 
     .swimmer {
       position: absolute;
-      top: 28px;
-      transform: translateX(-50%) scale(1);
-      transition: left 0.55s ease, transform 0.35s ease;
+      top: 2px;
+      transform: translateX(-50%) scaleX(-1);
+      transition: left 0.55s ease;
       font-size: 1.35rem;
       filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25));
       user-select: none;
+      line-height: 1;
     }
 
-    .swimmer.zoomed {
-      transform: translateX(-50%) scale(1.45);
-    }
-
-    .bar-info {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 6px;
+    .bar-tooltip {
       margin-top: 10px;
-      font-size: 0.9rem;
+      font-size: 0.875rem;
+      line-height: 1.6;
     }
 
-    .info-pill {
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      padding: 6px 10px;
-      background: #f8fbff;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+    .tooltip-swimmer {
+      font-weight: 700;
+      font-size: 0.92rem;
+      color: var(--text);
+    }
+
+    .tooltip-segment {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      color: #4d5d75;
+      flex-wrap: wrap;
+    }
+
+    .tooltip-arrow {
+      color: var(--blue);
+      font-weight: 600;
     }
 
     .meta {
@@ -244,14 +231,20 @@
     <section class="card">
       <h1>Garda Swim Progress Tracker</h1>
 
-      <div class="wave-track" id="waveTrack">
-        <div class="wave-fill" id="waveFill"></div>
+      <div class="progress-container">
+        <div class="wave-track" id="waveTrack">
+          <div class="wave-fill" id="waveFill"></div>
+        </div>
         <div class="swimmer" id="swimmer" aria-hidden="true">🏊</div>
       </div>
 
-      <div class="bar-info">
-        <div class="info-pill" id="lastAchievedInfo">Last achieved: none yet</div>
-        <div class="info-pill" id="nextTargetInfo">Next target: Start to Malcesine E to W - 3200m - 0%</div>
+      <div class="bar-tooltip">
+        <div class="tooltip-swimmer" id="tooltipSwimmer">🏊 Swimmer - 0m</div>
+        <div class="tooltip-segment">
+          <span id="tooltipLast">Start - 0m</span>
+          <span class="tooltip-arrow"> → </span>
+          <span id="tooltipNext">Malcesine E to W - 3200m</span>
+        </div>
       </div>
 
       <div class="meta">
@@ -318,8 +311,9 @@
       summaryName: document.getElementById('summaryName'),
       summaryDistance: document.getElementById('summaryDistance'),
       summaryPercent: document.getElementById('summaryPercent'),
-      lastAchievedInfo: document.getElementById('lastAchievedInfo'),
-      nextTargetInfo: document.getElementById('nextTargetInfo'),
+      tooltipSwimmer: document.getElementById('tooltipSwimmer'),
+      tooltipLast: document.getElementById('tooltipLast'),
+      tooltipNext: document.getElementById('tooltipNext'),
       targetsList: document.getElementById('targetsList')
     };
 
@@ -396,30 +390,12 @@
     function updateProgressBar() {
       clearMarkers();
       const all = cumulativeTargets();
-      const finalGoal = all[all.length - 1].cumulative;
       const total = totalDistance();
-      const progressPct = Math.max(0, Math.min(100, (total / finalGoal) * 100));
-      refs.waveFill.style.width = `${progressPct}%`;
 
       let lastAchievedIndex = -1;
       for (let i = 0; i < all.length; i++) {
         if (total >= all[i].cumulative) lastAchievedIndex = i;
       }
-      const nextIndex = Math.min(all.length - 1, lastAchievedIndex + 1);
-
-      all.forEach((target, i) => {
-        const pos = (target.cumulative / finalGoal) * 100;
-        const achieved = total >= target.cumulative;
-        const isOldAchieved = achieved && i < lastAchievedIndex - 1;
-        const cls = achieved ? `achieved${isOldAchieved ? ' old' : ''}` : 'upcoming';
-        createMarker(pos, cls, `${target.name} - ${fmtMeters(target.distance)}`);
-      });
-
-      let swimmerPct = progressPct;
-      const firstHalfReached = total >= TARGETS[0].distance / 2;
-      refs.swimmer.classList.toggle('zoomed', firstHalfReached);
-      if (firstHalfReached) swimmerPct = Math.max(33, Math.min(66, swimmerPct));
-      refs.swimmer.style.left = `${swimmerPct}%`;
 
       const segmentStartIndex = lastAchievedIndex;
       const segmentEndIndex = Math.min(all.length - 1, segmentStartIndex + 1);
@@ -431,16 +407,13 @@
       const inSegment = Math.max(0, total - startDist);
       const segmentPct = Math.min(100, (inSegment / segmentLength) * 100);
 
-      if (lastAchievedIndex >= 0) {
-        const prevStartName = lastAchievedIndex === 0 ? 'Start' : all[lastAchievedIndex - 1].name;
-        const prevStartDist = lastAchievedIndex === 0 ? 0 : all[lastAchievedIndex - 1].cumulative;
-        const prevLen = all[lastAchievedIndex].cumulative - prevStartDist;
-        refs.lastAchievedInfo.textContent = `${prevStartName} to ${all[lastAchievedIndex].name} - ${fmtMeters(prevLen)} - 100%`;
-      } else {
-        refs.lastAchievedInfo.textContent = 'Last achieved: none yet';
-      }
+      refs.waveFill.style.width = `${segmentPct}%`;
+      refs.swimmer.style.left = `${Math.max(2, Math.min(98, segmentPct))}%`;
 
-      refs.nextTargetInfo.textContent = `${startName} to ${endName} - ${fmtMeters(segmentLength)} - ${segmentPct.toFixed(0)}%`;
+      const name = state.name.trim() || 'Swimmer';
+      refs.tooltipSwimmer.textContent = `🏊 ${name} - ${fmtMeters(total)}`;
+      refs.tooltipLast.textContent = `${startName} - ${fmtMeters(startDist)}`;
+      refs.tooltipNext.textContent = `${endName} - ${fmtMeters(endDist)}`;
     }
 
     function renderTargets() {
