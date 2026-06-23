@@ -198,6 +198,40 @@
       pointer-events: none;
     }
 
+    .achieved-marker {
+      position: absolute;
+      left: 0%;
+      top: 57px;
+      transform: translate(0%, -50%);
+      width: 13px; height: 13px;
+      border-radius: 50%;
+      background: var(--success);
+      border: 2px solid var(--success);
+      box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.22);
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .achieved-tooltip-box {
+      position: absolute;
+      left: 0%;
+      top: 66px;
+      transform: translateX(0%);
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 6px;
+      padding: 2px 8px;
+      font-size: 0.67rem;
+      color: rgba(255, 255, 255, 0.75);
+      white-space: nowrap;
+      z-index: 2;
+      pointer-events: none;
+      max-width: 45%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
     /* ── Stats row ── */
     .stats-row {
       display: grid;
@@ -561,6 +595,8 @@
         <div class="swimmer" id="swimmer" aria-hidden="true">🏊</div>
         <div class="target-marker" id="targetMarker" aria-hidden="true"></div>
         <div class="target-tooltip-box" id="targetTooltipBox">Malcesine E to W — 3200m</div>
+        <div class="achieved-marker" id="achievedMarker" style="display:none;" aria-hidden="true"></div>
+        <div class="achieved-tooltip-box" id="achievedTooltipBox" style="display:none;"></div>
       </div>
 
       <div class="stats-row">
@@ -657,6 +693,8 @@
       swimmer: document.getElementById('swimmer'),
       swimmerNameBox: document.getElementById('swimmerNameBox'),
       targetTooltipBox: document.getElementById('targetTooltipBox'),
+      achievedMarker: document.getElementById('achievedMarker'),
+      achievedTooltipBox: document.getElementById('achievedTooltipBox'),
       summaryDistance: document.getElementById('summaryDistance'),
       heroHeadline: document.getElementById('heroHeadline'),
       lastAchievementEl: document.getElementById('lastAchievementEl'),
@@ -792,6 +830,16 @@
       refs.swimmerNameBox.textContent = state.name.trim() || 'Swimmer';
 
       refs.targetTooltipBox.textContent = `${endName} \u2014 ${fmtMeters(endDist)}`;
+
+      if (lastAchievedIndex >= 0) {
+        const lastAchieved = all[lastAchievedIndex];
+        refs.achievedMarker.style.display = '';
+        refs.achievedTooltipBox.style.display = '';
+        refs.achievedTooltipBox.textContent = `${lastAchieved.name} \u2014 ${fmtMeters(lastAchieved.cumulative)}`;
+      } else {
+        refs.achievedMarker.style.display = 'none';
+        refs.achievedTooltipBox.style.display = 'none';
+      }
     }
 
     function renderTargets() {
