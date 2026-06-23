@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Garda Swim Progress</title>
+  <style>
+    :root {
+      --bg: #f5f8ff;
+      --card: #ffffff;
+      --text: #10213a;
+      --blue: #1c9eff;
+      --blue-dark: #0c7dd1;
+      --gray: #bcc5d1;
+      --green: #24b04a;
+      --danger: #d43636;
+      --line: #dde4ef;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #f8fbff 0%, #edf4ff 100%);
+      min-height: 100vh;
+    }
+
+    .wrap {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 24px 14px 40px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 8px 24px rgba(16, 33, 58, 0.06);
+    }
+
+    h1 { margin: 0 0 12px; font-size: 1.4rem; }
+
+    .wave-track {
+      position: relative;
+      height: 72px;
+      border-radius: 36px;
+      background: #e8eef5;
+      overflow: hidden;
+      border: 1px solid #d6e1ef;
+    }
+
+    .wave-fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 0%;
+      max-width: 100%;
+      transition: width 0.55s ease;
+      background: linear-gradient(180deg, #45b9ff 0%, var(--blue) 54%, var(--blue-dark) 100%);
+      overflow: hidden;
+    }
+
+    .wave-fill::before,
+    .wave-fill::after {
+      content: "";
+      position: absolute;
+      left: -200px;
+      width: 400px;
+      height: 160px;
+      background: rgba(255, 255, 255, 0.24);
+      border-radius: 42%;
+      animation: wave 6.5s linear infinite;
+      bottom: -110px;
+    }
+
+    .wave-fill::after {
+      animation-duration: 4.6s;
+      opacity: 0.34;
+      bottom: -116px;
+    }
+
+    @keyframes wave {
+      0% { transform: translateX(0) rotate(0deg); }
+      100% { transform: translateX(400px) rotate(360deg); }
+    }
+
+    .marker {
+      position: absolute;
+      top: 9px;
+      transform: translateX(-50%);
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.85);
+      transition: all 0.28s ease;
+      box-shadow: 0 1px 6px rgba(0, 0, 0, 0.12);
+      pointer-events: none;
+    }
+
+    .marker.upcoming { background: var(--gray); }
+    .marker.achieved { background: var(--green); }
+    .marker.old { width: 9px; height: 9px; top: 14px; border-width: 1px; }
+
+    .swimmer {
+      position: absolute;
+      top: 28px;
+      transform: translateX(-50%) scale(1);
+      transition: left 0.55s ease, transform 0.35s ease;
+      font-size: 1.35rem;
+      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25));
+      user-select: none;
+    }
+
+    .swimmer.zoomed {
+      transform: translateX(-50%) scale(1.45);
+    }
+
+    .bar-info {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 6px;
+      margin-top: 10px;
+      font-size: 0.9rem;
+    }
+
+    .info-pill {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 6px 10px;
+      background: #f8fbff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-top: 12px;
+      font-size: 0.95rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    label {
+      font-size: 0.9rem;
+      color: #4d5d75;
+      font-weight: 600;
+    }
+
+    input, button {
+      font: inherit;
+      border-radius: 10px;
+      border: 1px solid #ced8e8;
+      padding: 9px 10px;
+      background: #fff;
+    }
+
+    input:focus {
+      outline: 2px solid rgba(28, 158, 255, 0.25);
+      border-color: var(--blue);
+    }
+
+    button {
+      cursor: pointer;
+      background: #eaf6ff;
+      border-color: #b9ddff;
+      color: #0b5b94;
+      font-weight: 600;
+    }
+
+    button:hover { background: #dbf0ff; }
+
+    .danger {
+      color: #fff;
+      background: var(--danger);
+      border-color: #b22525;
+      padding: 7px 9px;
+    }
+
+    .danger:hover { background: #be2f2f; }
+
+    .entries {
+      margin-top: 18px;
+      border-top: 1px dashed #d6deea;
+      padding-top: 14px;
+    }
+
+    .entry {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr auto auto;
+      gap: 8px;
+      margin-bottom: 8px;
+      align-items: center;
+    }
+
+    .entry .distance {
+      font-size: 0.9rem;
+      color: #2a3f5e;
+      text-align: right;
+      padding-right: 6px;
+    }
+
+    .targets {
+      margin-top: 16px;
+      display: grid;
+      gap: 6px;
+      font-size: 0.9rem;
+      color: #3f5069;
+    }
+
+    .target-row {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px dotted #d7e0ec;
+      padding-bottom: 5px;
+    }
+
+    .target-row:last-child { border-bottom: none; }
+
+    @media (max-width: 700px) {
+      .entry { grid-template-columns: 1fr 1fr auto; }
+      .entry .distance { grid-column: 1 / -1; text-align: left; padding-left: 4px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>Garda Swim Progress Tracker</h1>
+
+      <div class="wave-track" id="waveTrack">
+        <div class="wave-fill" id="waveFill"></div>
+        <div class="swimmer" id="swimmer" aria-hidden="true">🏊</div>
+      </div>
+
+      <div class="bar-info">
+        <div class="info-pill" id="lastAchievedInfo">Last achieved: none yet</div>
+        <div class="info-pill" id="nextTargetInfo">Next target: Start to Malcesine E to W - 3200m - 0%</div>
+      </div>
+
+      <div class="meta">
+        <strong id="summaryName">Swimmer</strong>
+        <span id="summaryDistance">0m total</span>
+        <span id="summaryPercent">0.0%</span>
+      </div>
+
+      <div class="grid">
+        <div class="field">
+          <label for="userName">Name</label>
+          <input id="userName" type="text" placeholder="Your name" />
+        </div>
+        <div class="field">
+          <label for="poolLength">Pool length (m)</label>
+          <input id="poolLength" type="number" min="1" step="1" placeholder="25" />
+        </div>
+        <div class="field">
+          <label>Round length</label>
+          <input id="roundLength" type="text" readonly value="0m" />
+        </div>
+      </div>
+
+      <section class="entries">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+          <h2 style="margin:0;font-size:1.05rem;">Entries (date + rounds)</h2>
+          <button id="addEntryBtn" type="button">+ Add entry</button>
+        </div>
+        <div id="entriesList" style="margin-top:10px;"></div>
+      </section>
+
+      <section class="targets">
+        <strong>Targets</strong>
+        <div id="targetsList"></div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_KEY = 'garda-swim-progress-v1';
+    const TARGETS = [
+      { name: 'Malcesine E to W', distance: 3200 },
+      { name: 'Rocca E to W', distance: 8000 },
+      { name: 'Rocca to Bardoliino', distance: 10000 },
+      { name: 'Southern widht', distance: 17200 },
+      { name: 'Total length', distance: 51900 }
+    ];
+
+    let state = {
+      name: '',
+      poolLength: 25,
+      entries: []
+    };
+
+    const refs = {
+      userName: document.getElementById('userName'),
+      poolLength: document.getElementById('poolLength'),
+      roundLength: document.getElementById('roundLength'),
+      entriesList: document.getElementById('entriesList'),
+      addEntryBtn: document.getElementById('addEntryBtn'),
+      waveFill: document.getElementById('waveFill'),
+      waveTrack: document.getElementById('waveTrack'),
+      swimmer: document.getElementById('swimmer'),
+      summaryName: document.getElementById('summaryName'),
+      summaryDistance: document.getElementById('summaryDistance'),
+      summaryPercent: document.getElementById('summaryPercent'),
+      lastAchievedInfo: document.getElementById('lastAchievedInfo'),
+      nextTargetInfo: document.getElementById('nextTargetInfo'),
+      targetsList: document.getElementById('targetsList')
+    };
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== 'object') return;
+        state.name = typeof parsed.name === 'string' ? parsed.name : '';
+        state.poolLength = Number.isFinite(Number(parsed.poolLength)) ? Math.max(1, Number(parsed.poolLength)) : 25;
+        state.entries = Array.isArray(parsed.entries)
+          ? parsed.entries
+              .map(e => ({
+                id: e.id || String(Date.now() + Math.random()),
+                date: typeof e.date === 'string' ? e.date : '',
+                rounds: Number.isFinite(Number(e.rounds)) ? Math.max(0, Number(e.rounds)) : 0
+              }))
+          : [];
+      } catch (_) {}
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function roundLength() {
+      return Math.max(1, Number(state.poolLength) || 1) * 2;
+    }
+
+    function entryDistance(rounds) {
+      return Math.max(0, Number(rounds) || 0) * roundLength();
+    }
+
+    function totalDistance() {
+      return state.entries.reduce((sum, e) => sum + entryDistance(e.rounds), 0);
+    }
+
+    function fmtMeters(m) {
+      return `${Math.round(m)}m`;
+    }
+
+    function cumulativeTargets() {
+      let sum = 0;
+      return TARGETS.map(t => {
+        sum += t.distance;
+        return { ...t, cumulative: sum };
+      });
+    }
+
+    function updateSummary() {
+      const total = totalDistance();
+      const all = cumulativeTargets();
+      const finalGoal = all[all.length - 1].cumulative;
+      const pct = Math.min(100, (total / finalGoal) * 100);
+      refs.summaryName.textContent = state.name.trim() || 'Swimmer';
+      refs.summaryDistance.textContent = `${fmtMeters(total)} total`;
+      refs.summaryPercent.textContent = `${pct.toFixed(1)}% of ${fmtMeters(finalGoal)}`;
+      refs.roundLength.value = fmtMeters(roundLength());
+    }
+
+    function createMarker(posPct, cls, label) {
+      const marker = document.createElement('div');
+      marker.className = `marker ${cls}`;
+      marker.style.left = `${posPct}%`;
+      marker.title = label;
+      refs.waveTrack.appendChild(marker);
+    }
+
+    function clearMarkers() {
+      refs.waveTrack.querySelectorAll('.marker').forEach(el => el.remove());
+    }
+
+    function updateProgressBar() {
+      clearMarkers();
+      const all = cumulativeTargets();
+      const finalGoal = all[all.length - 1].cumulative;
+      const total = totalDistance();
+      const progressPct = Math.max(0, Math.min(100, (total / finalGoal) * 100));
+      refs.waveFill.style.width = `${progressPct}%`;
+
+      let lastAchievedIndex = -1;
+      for (let i = 0; i < all.length; i++) {
+        if (total >= all[i].cumulative) lastAchievedIndex = i;
+      }
+      const nextIndex = Math.min(all.length - 1, lastAchievedIndex + 1);
+
+      all.forEach((target, i) => {
+        const pos = (target.cumulative / finalGoal) * 100;
+        const achieved = total >= target.cumulative;
+        const isOldAchieved = achieved && i < lastAchievedIndex - 1;
+        const cls = achieved ? `achieved${isOldAchieved ? ' old' : ''}` : 'upcoming';
+        createMarker(pos, cls, `${target.name} - ${fmtMeters(target.distance)}`);
+      });
+
+      let swimmerPct = progressPct;
+      const firstHalfReached = total >= TARGETS[0].distance / 2;
+      refs.swimmer.classList.toggle('zoomed', firstHalfReached);
+      if (firstHalfReached) swimmerPct = Math.max(33, Math.min(66, swimmerPct));
+      refs.swimmer.style.left = `${swimmerPct}%`;
+
+      const segmentStartIndex = lastAchievedIndex;
+      const segmentEndIndex = Math.min(all.length - 1, segmentStartIndex + 1);
+      const startName = segmentStartIndex < 0 ? 'Start' : all[segmentStartIndex].name;
+      const startDist = segmentStartIndex < 0 ? 0 : all[segmentStartIndex].cumulative;
+      const endName = all[segmentEndIndex].name;
+      const endDist = all[segmentEndIndex].cumulative;
+      const segmentLength = Math.max(1, endDist - startDist);
+      const inSegment = Math.max(0, total - startDist);
+      const segmentPct = Math.min(100, (inSegment / segmentLength) * 100);
+
+      if (lastAchievedIndex >= 0) {
+        const prevStartName = lastAchievedIndex === 0 ? 'Start' : all[lastAchievedIndex - 1].name;
+        const prevStartDist = lastAchievedIndex === 0 ? 0 : all[lastAchievedIndex - 1].cumulative;
+        const prevLen = all[lastAchievedIndex].cumulative - prevStartDist;
+        refs.lastAchievedInfo.textContent = `${prevStartName} to ${all[lastAchievedIndex].name} - ${fmtMeters(prevLen)} - 100%`;
+      } else {
+        refs.lastAchievedInfo.textContent = 'Last achieved: none yet';
+      }
+
+      refs.nextTargetInfo.textContent = `${startName} to ${endName} - ${fmtMeters(segmentLength)} - ${segmentPct.toFixed(0)}%`;
+    }
+
+    function renderTargets() {
+      refs.targetsList.innerHTML = '';
+      TARGETS.forEach(t => {
+        const row = document.createElement('div');
+        row.className = 'target-row';
+        row.innerHTML = `<span>${t.name}</span><span>${fmtMeters(t.distance)}</span>`;
+        refs.targetsList.appendChild(row);
+      });
+    }
+
+    function onEntryChange(id, field, value) {
+      const entry = state.entries.find(e => e.id === id);
+      if (!entry) return;
+      if (field === 'rounds') {
+        entry.rounds = Math.max(0, Number(value) || 0);
+      } else {
+        entry[field] = value;
+      }
+      saveState();
+      renderEntries();
+      updateSummary();
+      updateProgressBar();
+    }
+
+    function removeEntry(id) {
+      state.entries = state.entries.filter(e => e.id !== id);
+      saveState();
+      renderEntries();
+      updateSummary();
+      updateProgressBar();
+    }
+
+    function renderEntries() {
+      refs.entriesList.innerHTML = '';
+      if (!state.entries.length) {
+        const empty = document.createElement('div');
+        empty.style.color = '#667992';
+        empty.style.fontSize = '0.92rem';
+        empty.textContent = 'No entries yet. Add your first swim day.';
+        refs.entriesList.appendChild(empty);
+        return;
+      }
+
+      state.entries
+        .sort((a, b) => (a.date || '').localeCompare(b.date || ''))
+        .forEach(entry => {
+          const row = document.createElement('div');
+          row.className = 'entry';
+
+          const date = document.createElement('input');
+          date.type = 'date';
+          date.value = entry.date;
+          date.addEventListener('change', e => onEntryChange(entry.id, 'date', e.target.value));
+
+          const rounds = document.createElement('input');
+          rounds.type = 'number';
+          rounds.min = '0';
+          rounds.step = '1';
+          rounds.value = String(entry.rounds);
+          rounds.addEventListener('input', e => onEntryChange(entry.id, 'rounds', e.target.value));
+
+          const distance = document.createElement('div');
+          distance.className = 'distance';
+          distance.textContent = fmtMeters(entryDistance(entry.rounds));
+
+          const del = document.createElement('button');
+          del.type = 'button';
+          del.className = 'danger';
+          del.textContent = 'Delete';
+          del.addEventListener('click', () => removeEntry(entry.id));
+
+          row.append(date, rounds, distance, del);
+          refs.entriesList.appendChild(row);
+        });
+    }
+
+    function addEntry() {
+      state.entries.push({
+        id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        date: new Date().toISOString().slice(0, 10),
+        rounds: 1
+      });
+      saveState();
+      renderEntries();
+      updateSummary();
+      updateProgressBar();
+    }
+
+    function bindInputs() {
+      refs.userName.value = state.name;
+      refs.poolLength.value = String(state.poolLength);
+
+      refs.userName.addEventListener('input', e => {
+        state.name = e.target.value;
+        saveState();
+        updateSummary();
+      });
+
+      refs.poolLength.addEventListener('input', e => {
+        state.poolLength = Math.max(1, Number(e.target.value) || 1);
+        saveState();
+        renderEntries();
+        updateSummary();
+        updateProgressBar();
+      });
+
+      refs.addEntryBtn.addEventListener('click', addEntry);
+    }
+
+    function init() {
+      loadState();
+      bindInputs();
+      renderTargets();
+      renderEntries();
+      updateSummary();
+      updateProgressBar();
+    }
+
+    init();
+  </script>
+</body>
+</html>
