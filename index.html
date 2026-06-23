@@ -73,19 +73,6 @@
       color: var(--muted);
     }
 
-    .hero-headline {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    .hero-headline h2 {
-      margin: 0;
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: rgba(255, 255, 255, 0.9);
-      letter-spacing: -0.01em;
-    }
-
     /* ── Progress bar ── */
     .progress-container {
       position: relative;
@@ -251,6 +238,99 @@
     }
 
     .stat-highlight .stat-value { color: #7dd3fc; }
+
+    /* ── Hero headline row (with share button) ── */
+    .hero-headline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .hero-headline h2 {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.9);
+      letter-spacing: -0.01em;
+      flex: 1;
+    }
+
+    .btn-share {
+      background: rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      padding: 5px 12px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s, border-color 0.15s;
+      flex-shrink: 0;
+    }
+
+    .btn-share:hover {
+      background: rgba(255, 255, 255, 0.18);
+      border-color: rgba(255, 255, 255, 0.35);
+    }
+
+    /* ── Copy toast ── */
+    #toastMsg {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #0f172a;
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s, transform 0.2s;
+      z-index: 9999;
+    }
+
+    #toastMsg.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ── Track-own card (shared view) ── */
+    .card-track-own {
+      text-align: center;
+      padding: 28px 24px;
+    }
+
+    .card-track-own p {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .btn-track-own {
+      display: inline-block;
+      background: var(--accent);
+      color: #fff;
+      border: 1.5px solid var(--accent-dark);
+      border-radius: var(--radius-sm);
+      padding: 11px 28px;
+      font: inherit;
+      font-weight: 700;
+      font-size: 0.92rem;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.15s, box-shadow 0.15s;
+    }
+
+    .btn-track-own:hover {
+      background: var(--accent-dark);
+      box-shadow: 0 2px 10px rgba(14, 165, 233, 0.38);
+    }
 
     /* ── Facts row ── */
     .facts-row {
@@ -466,6 +546,7 @@
     <section class="card card-hero">
       <div class="hero-headline">
         <h2 id="heroHeadline">Swimmer's swimming progress:</h2>
+        <button id="shareBtn" class="btn-share" type="button" title="Share progress">🔗 Share</button>
       </div>
 
       <div class="progress-container">
@@ -510,8 +591,8 @@
       <div id="targetsList"></div>
     </section>
 
-    <!-- Section 3: Settings & sessions -->
-    <section class="card card-entries">
+    <!-- Section 3: Settings & sessions (hidden in shared view) -->
+    <section class="card card-entries" id="entriesCard">
       <div class="settings-grid">
         <div class="field">
           <label for="userName">Name</label>
@@ -534,10 +615,20 @@
       <div class="entries-list" id="entriesList"></div>
     </section>
 
+    <!-- Shared view: track own progress (hidden in normal view) -->
+    <section class="card card-track-own" id="trackOwnCard" style="display:none;">
+      <p>Viewing shared progress. Start tracking your own swims:</p>
+      <a href="https://vertexxx.github.io/garda-swim-web/" class="btn-track-own">Track your own progress</a>
+    </section>
+
   </main>
+
+  <!-- Copy toast -->
+  <div id="toastMsg">Link copied!</div>
 
   <script>
     const STORAGE_KEY = 'garda-swim-progress-v1';
+    const BASE_URL = 'https://vertexxx.github.io/garda-swim-web/';
     const TARGETS = [
       { name: 'Malcesine E to W', distance: 3200 },
       { name: 'Rocca E to W', distance: 8000 },
@@ -549,7 +640,8 @@
     let state = {
       name: '',
       poolLength: 15,
-      entries: []
+      entries: [],
+      _sharedTotal: null   // non-null when loaded from a share URL
     };
 
     const refs = {
@@ -570,7 +662,11 @@
       sessionsEl: document.getElementById('sessionsEl'),
       avgEl: document.getElementById('avgEl'),
       toNextEl: document.getElementById('toNextEl'),
-      targetsList: document.getElementById('targetsList')
+      targetsList: document.getElementById('targetsList'),
+      shareBtn: document.getElementById('shareBtn'),
+      entriesCard: document.getElementById('entriesCard'),
+      trackOwnCard: document.getElementById('trackOwnCard'),
+      toastMsg: document.getElementById('toastMsg')
     };
 
     function loadState() {
@@ -605,6 +701,7 @@
     }
 
     function totalDistance() {
+      if (state._sharedTotal !== null) return state._sharedTotal;
       return state.entries.reduce((sum, e) => sum + entryDistance(e.rounds), 0);
     }
 
@@ -642,11 +739,15 @@
       refs.nextTargetEl.textContent = next ? next.name : '✓ All done!';
 
       // Facts
-      const sessions = state.entries.length;
-      refs.sessionsEl.textContent = `${sessions} session${sessions !== 1 ? 's' : ''}`;
-
-      const avg = sessions > 0 ? Math.round(total / sessions) : 0;
-      refs.avgEl.textContent = `${fmtMeters(avg)} avg`;
+      if (state._sharedTotal !== null) {
+        refs.sessionsEl.textContent = '';
+        refs.avgEl.textContent = `${fmtMeters(state._sharedTotal)} total`;
+      } else {
+        const sessions = state.entries.length;
+        refs.sessionsEl.textContent = `${sessions} session${sessions !== 1 ? 's' : ''}`;
+        const avg = sessions > 0 ? Math.round(total / sessions) : 0;
+        refs.avgEl.textContent = `${fmtMeters(avg)} avg`;
+      }
 
       const toNext = next ? Math.max(0, next.cumulative - total) : 0;
       refs.toNextEl.textContent = next ? `${fmtMeters(toNext)} to go` : 'All done!';
@@ -817,13 +918,74 @@
       refs.addEntryBtn.addEventListener('click', addEntry);
     }
 
+    /* ── Share functionality ── */
+
+    function getShareParams() {
+      const params = new URLSearchParams(window.location.search);
+      const name = params.get('name');
+      const rl = Number(params.get('roundlength'));
+      const tr = Number(params.get('totalrounds'));
+      if (name !== null && rl > 0 && tr >= 0) {
+        return { name, roundlength: rl, totalrounds: tr };
+      }
+      return null;
+    }
+
+    function buildShareUrl() {
+      const totalRounds = state.entries.reduce((sum, e) => sum + (Number(e.rounds) || 0), 0);
+      const rl = roundLength();
+      const name = state.name.trim() || 'Swimmer';
+      const params = new URLSearchParams({
+        name,
+        roundlength: String(rl),
+        totalrounds: String(totalRounds)
+      });
+      return BASE_URL + '?' + params.toString();
+    }
+
+    let toastTimer = null;
+    function showToast(msg) {
+      refs.toastMsg.textContent = msg;
+      refs.toastMsg.classList.add('show');
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => refs.toastMsg.classList.remove('show'), 2500);
+    }
+
+    function shareProgress() {
+      const url = buildShareUrl();
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(
+          () => showToast('Link copied!'),
+          () => { prompt('Copy this link:', url); }
+        );
+      } else {
+        prompt('Copy this link:', url);
+      }
+    }
+
     function init() {
-      loadState();
-      bindInputs();
-      renderTargets();
-      renderEntries();
-      updateSummary();
-      updateProgressBar();
+      const shared = getShareParams();
+      if (shared) {
+        // Shared view: show progress from URL params, hide sessions
+        state.name = shared.name;
+        state._sharedTotal = shared.totalrounds * shared.roundlength;
+
+        renderTargets();
+        updateSummary();
+        updateProgressBar();
+
+        refs.entriesCard.style.display = 'none';
+        refs.trackOwnCard.style.display = '';
+        refs.shareBtn.style.display = 'none';
+      } else {
+        loadState();
+        bindInputs();
+        renderTargets();
+        renderEntries();
+        updateSummary();
+        updateProgressBar();
+        refs.shareBtn.addEventListener('click', shareProgress);
+      }
     }
 
     init();
