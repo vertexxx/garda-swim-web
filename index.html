@@ -202,7 +202,7 @@
       position: absolute;
       left: 0%;
       top: 57px;
-      transform: translate(0%, -50%);
+      transform: translate(-50%, -50%);
       width: 13px; height: 13px;
       border-radius: 50%;
       background: var(--success);
@@ -216,7 +216,7 @@
       position: absolute;
       left: 0%;
       top: 66px;
-      transform: translateX(0%);
+      transform: translateX(-50%);
       background: rgba(255, 255, 255, 0.1);
       backdrop-filter: blur(8px);
       border: 1px solid rgba(255, 255, 255, 0.18);
@@ -230,6 +230,10 @@
       max-width: 45%;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+
+    .achieved-tooltip-box.tooltip-raised {
+      top: 28px;
     }
 
     /* ── Stats row ── */
@@ -397,15 +401,32 @@
     }
 
     .target-row {
-      display: flex;
+      --target-progress: 0%;
+      position: relative;
+      display: grid;
+      grid-template-columns: 20px minmax(0, 1fr) auto;
       align-items: center;
       gap: 10px;
-      padding: 9px 0;
-      border-bottom: 1px solid var(--line);
+      padding: 11px 14px;
+      margin-bottom: 8px;
+      border: 1px solid rgba(16, 185, 129, 0.14);
+      border-radius: 14px;
+      background: rgba(15, 23, 42, 0.03);
+      overflow: hidden;
+      isolation: isolate;
       font-size: 0.87rem;
     }
 
-    .target-row:last-child { border-bottom: none; }
+    .target-row:last-child { margin-bottom: 0; }
+
+    .target-row::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: var(--target-progress);
+      background: linear-gradient(90deg, rgba(16, 185, 129, 0.22) 0%, rgba(16, 185, 129, 0.1) 100%);
+      z-index: -1;
+    }
 
     .target-check {
       width: 20px; height: 20px;
@@ -426,9 +447,38 @@
       color: #fff;
     }
 
-    .target-name { flex: 1; color: var(--text); font-weight: 500; }
-    .target-pct { color: var(--accent); font-size: 0.8rem; font-weight: 600; min-width: 3.2em; text-align: right; }
-    .target-dist { color: var(--muted); font-size: 0.8rem; }
+    .target-name {
+      min-width: 0;
+      color: var(--text);
+      font-weight: 500;
+      line-height: 1.35;
+    }
+
+    .target-pct {
+      color: var(--success);
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .target-meta {
+      display: grid;
+      grid-auto-flow: column;
+      gap: 8px;
+      align-items: center;
+      justify-content: end;
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .target-dist,
+    .target-rounds {
+      text-align: right;
+    }
+
+    .target-dist { min-width: 5.5ch; }
+    .target-rounds { min-width: 11ch; }
 
     /* ── Entries card ── */
     .card-entries h2 {
@@ -564,6 +614,8 @@
       .settings-grid .field:last-child { grid-column: 1 / -1; }
       .entry { grid-template-columns: 1fr 80px auto; }
       .entry .distance { display: none; }
+      .target-row { grid-template-columns: 20px minmax(0, 1fr); }
+      .target-meta { grid-column: 2; justify-content: start; }
     }
   </style>
 </head>
@@ -692,6 +744,7 @@
       waveTrack: document.getElementById('waveTrack'),
       swimmer: document.getElementById('swimmer'),
       swimmerNameBox: document.getElementById('swimmerNameBox'),
+      targetMarker: document.getElementById('targetMarker'),
       targetTooltipBox: document.getElementById('targetTooltipBox'),
       achievedMarker: document.getElementById('achievedMarker'),
       achievedTooltipBox: document.getElementById('achievedTooltipBox'),
@@ -749,8 +802,32 @@
       return `${Math.round(m)}m`;
     }
 
+    function fmtRounds(distance) {
+      const rl = roundLength();
+      if (!(rl > 0)) return '— rounds';
+      const rounds = distance / rl;
+      const rounded = rounds >= 100 ? Math.round(rounds) : Math.round(rounds * 10) / 10;
+      return `${String(rounded).replace(/\.0$/, '')} rounds`;
+    }
+
     function cumulativeTargets() {
       return TARGETS.map(t => ({ ...t, cumulative: t.distance }));
+    }
+
+    function scaledTrackPct(distance, maxDistance, scale = 0.88) {
+      if (!(maxDistance > 0)) return 0;
+      return Math.max(0, Math.min(scale * 100, (distance / maxDistance) * scale * 100));
+    }
+
+    function placeTooltip(el, posPct) {
+      el.style.left = `${posPct}%`;
+      if (posPct <= 12) {
+        el.style.transform = 'translateX(0)';
+      } else if (posPct >= 76) {
+        el.style.transform = 'translateX(-100%)';
+      } else {
+        el.style.transform = 'translateX(-50%)';
+      }
     }
 
     function updateSummary() {
@@ -806,35 +883,42 @@
       const SCALE = 0.88; // target marker sits at 88% of bar; 12% gray buffer remains
       const all = cumulativeTargets();
       const total = totalDistance();
+      const finalTarget = all[all.length - 1];
+      const trackMax = finalTarget ? finalTarget.cumulative : 1;
 
       let lastAchievedIndex = -1;
       for (let i = 0; i < all.length; i++) {
         if (total >= all[i].cumulative) lastAchievedIndex = i;
       }
 
-      const segmentStartIndex = lastAchievedIndex;
-      const segmentEndIndex = Math.min(all.length - 1, segmentStartIndex + 1);
-      const startDist = segmentStartIndex < 0 ? 0 : all[segmentStartIndex].cumulative;
-      const endName = all[segmentEndIndex].name;
-      const endDist = all[segmentEndIndex].cumulative;
-      const segmentLength = Math.max(1, endDist - startDist);
-      const inSegment = Math.max(0, total - startDist);
-      const segmentPct = Math.min(100, (inSegment / segmentLength) * 100);
-
-      const fillPct = segmentPct * SCALE;
+      const next = all.find(t => total < t.cumulative);
+      const fillPct = scaledTrackPct(total, trackMax, SCALE);
       refs.waveFill.style.width = `${fillPct}%`;
 
-      const swimPos = Math.max(1, Math.min(SCALE * 100 - 1, fillPct));
+      const swimPos = Math.max(0, Math.min(SCALE * 100, fillPct));
       refs.swimmer.style.left = `${swimPos}%`;
       refs.swimmerNameBox.style.left = `${swimPos}%`;
       refs.swimmerNameBox.textContent = state.name.trim() || 'Swimmer';
 
-      refs.targetTooltipBox.textContent = `${endName} \u2014 ${fmtMeters(endDist)}`;
+      const targetDist = next ? next.cumulative : trackMax;
+      const targetPos = scaledTrackPct(targetDist, trackMax, SCALE);
+      refs.targetMarker.style.left = `${targetPos}%`;
+      placeTooltip(refs.targetTooltipBox, targetPos);
+      refs.targetTooltipBox.textContent = next
+        ? `${next.name} \u2014 ${fmtMeters(next.cumulative)}`
+        : `Finish \u2014 ${fmtMeters(trackMax)}`;
+      refs.achievedTooltipBox.classList.remove('tooltip-raised');
 
       if (lastAchievedIndex >= 0) {
         const lastAchieved = all[lastAchievedIndex];
+        const achievedPos = scaledTrackPct(lastAchieved.cumulative, trackMax, SCALE);
         refs.achievedMarker.style.display = '';
         refs.achievedTooltipBox.style.display = '';
+        refs.achievedMarker.style.left = `${achievedPos}%`;
+        placeTooltip(refs.achievedTooltipBox, achievedPos);
+        if (Math.abs(targetPos - achievedPos) < 14) {
+          refs.achievedTooltipBox.classList.add('tooltip-raised');
+        }
         refs.achievedTooltipBox.textContent = `${lastAchieved.name} \u2014 ${fmtMeters(lastAchieved.cumulative)}`;
       } else {
         refs.achievedMarker.style.display = 'none';
@@ -851,11 +935,11 @@
         const pct = Math.min(100, Math.round((total / t.cumulative) * 100));
         const row = document.createElement('div');
         row.className = 'target-row';
+        row.style.setProperty('--target-progress', `${pct}%`);
         row.innerHTML = `
           <div class="target-check ${done ? 'done' : ''}">${done ? '✓' : ''}</div>
-          <span class="target-name">${t.name}</span>
-          <span class="target-pct">${pct}%</span>
-          <span class="target-dist">${fmtMeters(t.cumulative)}</span>`;
+          <span class="target-name">${t.name} <span class="target-pct">(${pct}%)</span></span>
+          <span class="target-meta"><span class="target-dist">${fmtMeters(t.cumulative)}</span><span class="target-rounds">(${fmtRounds(t.cumulative)})</span></span>`;
         refs.targetsList.appendChild(row);
       });
     }
