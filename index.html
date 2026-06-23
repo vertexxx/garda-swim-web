@@ -6,15 +6,17 @@
   <title>Garda Swim Progress</title>
   <style>
     :root {
-      --bg: #f5f8ff;
-      --card: #ffffff;
-      --text: #10213a;
-      --blue: #1c9eff;
-      --blue-dark: #0c7dd1;
-      --gray: #bcc5d1;
-      --green: #24b04a;
-      --danger: #d43636;
-      --line: #dde4ef;
+      --text: #0c1a2e;
+      --muted: #64748b;
+      --accent: #0ea5e9;
+      --accent-dark: #0284c7;
+      --accent-glow: rgba(14, 165, 233, 0.18);
+      --success: #10b981;
+      --danger: #ef4444;
+      --line: #e2e8f0;
+      --radius: 18px;
+      --radius-sm: 10px;
+      --shadow-md: 0 4px 20px rgba(12, 26, 46, 0.09), 0 1px 4px rgba(12, 26, 46, 0.05);
     }
 
     * { box-sizing: border-box; }
@@ -23,271 +25,515 @@
       margin: 0;
       font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       color: var(--text);
-      background: linear-gradient(180deg, #f8fbff 0%, #edf4ff 100%);
+      background: linear-gradient(150deg, #dbeafe 0%, #ede9fe 60%, #f0fdf4 100%);
       min-height: 100vh;
     }
 
     .wrap {
-      max-width: 980px;
+      max-width: 640px;
       margin: 0 auto;
-      padding: 24px 14px 40px;
+      padding: 28px 14px 48px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
     }
 
     .card {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 16px;
-      box-shadow: 0 8px 24px rgba(16, 33, 58, 0.06);
+      background: #ffffff;
+      border-radius: var(--radius);
+      padding: 22px 24px;
+      box-shadow: var(--shadow-md);
+      border: 1px solid rgba(226, 232, 240, 0.7);
     }
 
-    h1 { margin: 0 0 12px; font-size: 1.4rem; }
+    /* ── Hero card ── */
+    .card-hero {
+      background: linear-gradient(145deg, #0f172a 0%, #0c2d5e 55%, #1e1b4b 100%);
+      color: #fff;
+      border: none;
+      box-shadow: 0 8px 32px rgba(12, 26, 46, 0.22), 0 0 0 1px rgba(14, 165, 233, 0.12);
+      padding: 28px 24px 24px;
+    }
+
+    .page-title {
+      text-align: center;
+    }
+
+    .page-title h1 {
+      margin: 0 0 5px;
+      font-size: 1.85rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--text);
+    }
+
+    .page-title p {
+      margin: 0;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .hero-headline {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .hero-headline h2 {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.9);
+      letter-spacing: -0.01em;
+    }
+
+    /* ── Progress bar ── */
+    .progress-container {
+      position: relative;
+      padding-top: 52px;
+      padding-bottom: 38px;
+    }
 
     .wave-track {
       position: relative;
-      height: 72px;
-      border-radius: 36px;
-      background: #e8eef5;
-      overflow: hidden;
-      border: 1px solid #d6e1ef;
+      height: 10px;
+      border-radius: 5px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.07);
     }
 
     .wave-fill {
       position: absolute;
-      left: 0;
-      top: 0;
-      bottom: 0;
+      left: 0; top: 0; bottom: 0;
       width: 0%;
       max-width: 100%;
-      transition: width 0.55s ease;
-      background: linear-gradient(180deg, #45b9ff 0%, var(--blue) 54%, var(--blue-dark) 100%);
+      border-radius: 5px;
+      transition: width 0.55s cubic-bezier(.4, 0, .2, 1);
+      background: linear-gradient(90deg, #0ea5e9 0%, #38bdf8 65%, #7dd3fc 100%);
       overflow: hidden;
     }
 
-    .wave-fill::before,
-    .wave-fill::after {
+    .wave-fill::before {
       content: "";
       position: absolute;
-      left: -200px;
-      width: 400px;
-      height: 160px;
-      background: rgba(255, 255, 255, 0.24);
-      border-radius: 42%;
-      animation: wave 6.5s linear infinite;
-      bottom: -110px;
+      inset: 0;
+      background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.38) 50%, transparent 100%);
+      background-size: 200% 100%;
+      animation: shimmer 2.5s ease-in-out infinite;
     }
 
-    .wave-fill::after {
-      animation-duration: 4.6s;
-      opacity: 0.34;
-      bottom: -116px;
+    @keyframes shimmer {
+      0%   { background-position: -200% 0; }
+      100% { background-position:  200% 0; }
     }
-
-    @keyframes wave {
-      0% { transform: translateX(0) rotate(0deg); }
-      100% { transform: translateX(400px) rotate(360deg); }
-    }
-
-    .marker {
-      position: absolute;
-      top: 9px;
-      transform: translateX(-50%);
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      border: 2px solid rgba(255, 255, 255, 0.85);
-      transition: all 0.28s ease;
-      box-shadow: 0 1px 6px rgba(0, 0, 0, 0.12);
-      pointer-events: none;
-    }
-
-    .marker.upcoming { background: var(--gray); }
-    .marker.achieved { background: var(--green); }
-    .marker.old { width: 9px; height: 9px; top: 14px; border-width: 1px; }
 
     .swimmer {
       position: absolute;
-      top: 28px;
-      transform: translateX(-50%) scale(1);
-      transition: left 0.55s ease, transform 0.35s ease;
+      top: 30px;
+      transform: translateX(-50%) scaleX(-1);
+      transition: left 0.55s cubic-bezier(.4, 0, .2, 1);
       font-size: 1.35rem;
-      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25));
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.45));
       user-select: none;
+      line-height: 1;
+      z-index: 3;
     }
 
-    .swimmer.zoomed {
-      transform: translateX(-50%) scale(1.45);
-    }
-
-    .bar-info {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 6px;
-      margin-top: 10px;
-      font-size: 0.9rem;
-    }
-
-    .info-pill {
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      padding: 6px 10px;
-      background: #f8fbff;
+    .swimmer-name-box {
+      position: absolute;
+      top: 4px;
+      transform: translateX(-50%);
+      background: rgba(255, 255, 255, 0.14);
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 6px;
+      padding: 2px 8px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #fff;
       white-space: nowrap;
+      transition: left 0.55s cubic-bezier(.4, 0, .2, 1);
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .start-flag {
+      position: absolute;
+      left: 0; top: 20px;
+      width: 16px; height: 34px;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .flag-pole {
+      position: absolute;
+      left: 0; top: 0;
+      width: 2px; height: 34px;
+      background: rgba(255, 255, 255, 0.35);
+      border-radius: 1px;
+    }
+
+    .flag-banner {
+      position: absolute;
+      left: 2px; top: 0;
+      width: 12px; height: 8px;
+      background: var(--success);
+      border-radius: 0 3px 3px 0;
+    }
+
+    .target-marker {
+      position: absolute;
+      left: 88%;
+      top: 57px;
+      transform: translate(-50%, -50%);
+      width: 13px; height: 13px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2px solid var(--accent);
+      box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.22);
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .target-tooltip-box {
+      position: absolute;
+      left: 88%;
+      top: 66px;
+      transform: translateX(-50%);
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 6px;
+      padding: 2px 8px;
+      font-size: 0.67rem;
+      color: rgba(255, 255, 255, 0.75);
+      white-space: nowrap;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    /* ── Stats row ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .stat {
+      text-align: center;
+      padding: 12px 6px;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+    }
+
+    .stat-value {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.25;
+      margin-bottom: 3px;
       overflow: hidden;
       text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
-    .meta {
+    .stat-label {
+      font-size: 0.65rem;
+      color: rgba(255, 255, 255, 0.45);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .stat-highlight {
+      background: rgba(14, 165, 233, 0.18);
+      border-color: rgba(14, 165, 233, 0.28);
+    }
+
+    .stat-highlight .stat-value { color: #7dd3fc; }
+
+    /* ── Facts row ── */
+    .facts-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 14px;
-      margin-top: 12px;
+      gap: 8px;
+      margin-top: 14px;
+      justify-content: center;
+    }
+
+    .fact {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 5px 12px;
+      font-size: 0.76rem;
+      color: rgba(255, 255, 255, 0.65);
+    }
+
+    /* ── Achievements card ── */
+    .card-targets h2 {
+      margin: 0 0 12px;
       font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.01em;
     }
 
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    .target-row {
+      display: flex;
+      align-items: center;
       gap: 10px;
-      margin-top: 16px;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 0.87rem;
     }
 
-    .field {
-      display: grid;
-      gap: 6px;
+    .target-row:last-child { border-bottom: none; }
+
+    .target-check {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      border: 2px solid var(--line);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      font-weight: 700;
+      transition: background 0.2s, border-color 0.2s;
     }
+
+    .target-check.done {
+      background: var(--success);
+      border-color: var(--success);
+      color: #fff;
+    }
+
+    .target-name { flex: 1; color: var(--text); font-weight: 500; }
+    .target-pct { color: var(--accent); font-size: 0.8rem; font-weight: 600; min-width: 3.2em; text-align: right; }
+    .target-dist { color: var(--muted); font-size: 0.8rem; }
+
+    /* ── Entries card ── */
+    .card-entries h2 {
+      margin: 0;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .field { display: grid; gap: 5px; }
 
     label {
-      font-size: 0.9rem;
-      color: #4d5d75;
+      font-size: 0.78rem;
+      color: var(--muted);
       font-weight: 600;
+      letter-spacing: 0.02em;
     }
 
-    input, button {
+    input {
       font: inherit;
-      border-radius: 10px;
-      border: 1px solid #ced8e8;
-      padding: 9px 10px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--line);
+      padding: 9px 11px;
       background: #fff;
+      color: var(--text);
+      font-size: 0.9rem;
+      transition: border-color 0.15s, box-shadow 0.15s;
     }
 
     input:focus {
-      outline: 2px solid rgba(28, 158, 255, 0.25);
-      border-color: var(--blue);
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    input[readonly] {
+      background: #f8fafc;
+      color: var(--muted);
+    }
+
+    .round-length-display {
+      padding: 9px 11px;
+      font-size: 0.9rem;
+      color: var(--muted);
+      font-weight: 500;
     }
 
     button {
+      font: inherit;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid transparent;
+      padding: 9px 16px;
       cursor: pointer;
-      background: #eaf6ff;
-      border-color: #b9ddff;
-      color: #0b5b94;
       font-weight: 600;
+      font-size: 0.86rem;
+      transition: background 0.15s, box-shadow 0.15s;
     }
 
-    button:hover { background: #dbf0ff; }
-
-    .danger {
+    .btn-primary {
+      background: var(--accent);
       color: #fff;
-      background: var(--danger);
-      border-color: #b22525;
-      padding: 7px 9px;
+      border-color: var(--accent-dark);
     }
 
-    .danger:hover { background: #be2f2f; }
-
-    .entries {
-      margin-top: 18px;
-      border-top: 1px dashed #d6deea;
-      padding-top: 14px;
+    .btn-primary:hover {
+      background: var(--accent-dark);
+      box-shadow: 0 2px 10px rgba(14, 165, 233, 0.38);
     }
+
+    .btn-danger {
+      background: #fef2f2;
+      color: var(--danger);
+      border-color: #fecaca;
+      padding: 7px 10px;
+      font-size: 0.8rem;
+    }
+
+    .btn-danger:hover { background: #fee2e2; }
+
+    .entries-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding-top: 16px;
+      border-top: 1.5px solid var(--line);
+    }
+
+    .entries-list { margin-top: 10px; }
 
     .entry {
       display: grid;
-      grid-template-columns: 1.2fr 1fr auto auto;
+      grid-template-columns: 1fr 90px auto auto;
       gap: 8px;
       margin-bottom: 8px;
       align-items: center;
     }
 
     .entry .distance {
-      font-size: 0.9rem;
-      color: #2a3f5e;
+      font-size: 0.82rem;
+      color: var(--muted);
       text-align: right;
-      padding-right: 6px;
+      padding-right: 2px;
     }
 
-    .targets {
-      margin-top: 16px;
-      display: grid;
-      gap: 6px;
-      font-size: 0.9rem;
-      color: #3f5069;
+    .empty-entries {
+      color: var(--muted);
+      font-size: 0.88rem;
+      text-align: center;
+      padding: 20px 0;
     }
 
-    .target-row {
-      display: flex;
-      justify-content: space-between;
-      border-bottom: 1px dotted #d7e0ec;
-      padding-bottom: 5px;
-    }
-
-    .target-row:last-child { border-bottom: none; }
-
-    @media (max-width: 700px) {
-      .entry { grid-template-columns: 1fr 1fr auto; }
-      .entry .distance { grid-column: 1 / -1; text-align: left; padding-left: 4px; }
+    /* ── Responsive ── */
+    @media (max-width: 520px) {
+      .wrap { padding: 14px 10px 36px; gap: 10px; }
+      .card { padding: 18px 16px; }
+      .card-hero { padding: 22px 16px 18px; }
+      .page-title h1 { font-size: 1.55rem; }
+      .hero-headline h2 { font-size: 0.92rem; }
+      .stats-row { gap: 7px; }
+      .stat { padding: 10px 4px; }
+      .stat-value { font-size: 0.85rem; }
+      .stat-label { font-size: 0.58rem; }
+      .settings-grid { grid-template-columns: 1fr 1fr; }
+      .settings-grid .field:last-child { grid-column: 1 / -1; }
+      .entry { grid-template-columns: 1fr 80px auto; }
+      .entry .distance { display: none; }
     }
   </style>
 </head>
 <body>
   <main class="wrap">
-    <section class="card">
-      <h1>Garda Swim Progress Tracker</h1>
 
-      <div class="wave-track" id="waveTrack">
-        <div class="wave-fill" id="waveFill"></div>
+    <!-- Page title (above dark card) -->
+    <div class="page-title">
+      <h1>Garda Swim 🌊</h1>
+      <p>Track your training across Lake Garda</p>
+    </div>
+
+    <!-- Section 1: Hero — progress bar + stats -->
+    <section class="card card-hero">
+      <div class="hero-headline">
+        <h2 id="heroHeadline">Swimmer's swimming progress:</h2>
+      </div>
+
+      <div class="progress-container">
+        <div class="wave-track" id="waveTrack">
+          <div class="wave-fill" id="waveFill"></div>
+        </div>
+        <div class="start-flag" aria-hidden="true">
+          <div class="flag-pole"></div>
+          <div class="flag-banner"></div>
+        </div>
+        <div class="swimmer-name-box" id="swimmerNameBox">Swimmer</div>
         <div class="swimmer" id="swimmer" aria-hidden="true">🏊</div>
+        <div class="target-marker" id="targetMarker" aria-hidden="true"></div>
+        <div class="target-tooltip-box" id="targetTooltipBox">Malcesine E to W — 3200m</div>
       </div>
 
-      <div class="bar-info">
-        <div class="info-pill" id="lastAchievedInfo">Last achieved: none yet</div>
-        <div class="info-pill" id="nextTargetInfo">Next target: Start to Malcesine E to W - 3200m - 0%</div>
+      <div class="stats-row">
+        <div class="stat">
+          <div class="stat-value" id="summaryDistance">0m</div>
+          <div class="stat-label">Total swum</div>
+        </div>
+        <div class="stat stat-highlight">
+          <div class="stat-value" id="lastAchievementEl">—</div>
+          <div class="stat-label">Last achievement</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" id="nextTargetEl">Malcesine</div>
+          <div class="stat-label">Next target</div>
+        </div>
       </div>
 
-      <div class="meta">
-        <strong id="summaryName">Swimmer</strong>
-        <span id="summaryDistance">0m total</span>
-        <span id="summaryPercent">0.0%</span>
+      <div class="facts-row">
+        <div class="fact">📅 <span id="sessionsEl">0 sessions</span></div>
+        <div class="fact">📏 <span id="avgEl">0m avg</span></div>
+        <div class="fact">🎯 <span id="toNextEl">3,200m to go</span></div>
       </div>
+    </section>
 
-      <div class="grid">
+    <!-- Section 2: Achievements -->
+    <section class="card card-targets">
+      <h2>Achievements</h2>
+      <div id="targetsList"></div>
+    </section>
+
+    <!-- Section 3: Settings & sessions -->
+    <section class="card card-entries">
+      <div class="settings-grid">
         <div class="field">
           <label for="userName">Name</label>
           <input id="userName" type="text" placeholder="Your name" />
         </div>
         <div class="field">
           <label for="poolLength">Pool length (m)</label>
-          <input id="poolLength" type="number" min="1" step="1" placeholder="25" />
+          <input id="poolLength" type="number" min="1" step="1" placeholder="15" />
         </div>
         <div class="field">
           <label>Round length</label>
-          <input id="roundLength" type="text" readonly value="0m" />
+          <div id="roundLength" class="round-length-display">0m</div>
         </div>
       </div>
 
-      <section class="entries">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
-          <h2 style="margin:0;font-size:1.05rem;">Entries (date + rounds)</h2>
-          <button id="addEntryBtn" type="button">+ Add entry</button>
-        </div>
-        <div id="entriesList" style="margin-top:10px;"></div>
-      </section>
-
-      <section class="targets">
-        <strong>Targets</strong>
-        <div id="targetsList"></div>
-      </section>
+      <div class="entries-header">
+        <h2>Sessions</h2>
+        <button id="addEntryBtn" type="button" class="btn-primary">+ Add session</button>
+      </div>
+      <div class="entries-list" id="entriesList"></div>
     </section>
+
   </main>
 
   <script>
@@ -297,12 +543,12 @@
       { name: 'Rocca E to W', distance: 8000 },
       { name: 'Rocca to Bardoliino', distance: 10000 },
       { name: 'Southern widht', distance: 17200 },
-      { name: 'Total length', distance: 51900 }
+      { name: 'Length N to S', distance: 51900 }
     ];
 
     let state = {
       name: '',
-      poolLength: 25,
+      poolLength: 15,
       entries: []
     };
 
@@ -315,11 +561,15 @@
       waveFill: document.getElementById('waveFill'),
       waveTrack: document.getElementById('waveTrack'),
       swimmer: document.getElementById('swimmer'),
-      summaryName: document.getElementById('summaryName'),
+      swimmerNameBox: document.getElementById('swimmerNameBox'),
+      targetTooltipBox: document.getElementById('targetTooltipBox'),
       summaryDistance: document.getElementById('summaryDistance'),
-      summaryPercent: document.getElementById('summaryPercent'),
-      lastAchievedInfo: document.getElementById('lastAchievedInfo'),
-      nextTargetInfo: document.getElementById('nextTargetInfo'),
+      heroHeadline: document.getElementById('heroHeadline'),
+      lastAchievementEl: document.getElementById('lastAchievementEl'),
+      nextTargetEl: document.getElementById('nextTargetEl'),
+      sessionsEl: document.getElementById('sessionsEl'),
+      avgEl: document.getElementById('avgEl'),
+      toNextEl: document.getElementById('toNextEl'),
       targetsList: document.getElementById('targetsList')
     };
 
@@ -330,7 +580,7 @@
         const parsed = JSON.parse(raw);
         if (!parsed || typeof parsed !== 'object') return;
         state.name = typeof parsed.name === 'string' ? parsed.name : '';
-        state.poolLength = Number.isFinite(Number(parsed.poolLength)) ? Math.max(1, Number(parsed.poolLength)) : 25;
+        state.poolLength = Number.isFinite(Number(parsed.poolLength)) ? Math.max(1, Number(parsed.poolLength)) : 15;
         state.entries = Array.isArray(parsed.entries)
           ? parsed.entries
               .map(e => ({
@@ -373,12 +623,33 @@
     function updateSummary() {
       const total = totalDistance();
       const all = cumulativeTargets();
-      const finalGoal = all[all.length - 1].cumulative;
-      const pct = Math.min(100, (total / finalGoal) * 100);
-      refs.summaryName.textContent = state.name.trim() || 'Swimmer';
-      refs.summaryDistance.textContent = `${fmtMeters(total)} total`;
-      refs.summaryPercent.textContent = `${pct.toFixed(1)}% of ${fmtMeters(finalGoal)}`;
-      refs.roundLength.value = fmtMeters(roundLength());
+      const name = state.name.trim() || 'Swimmer';
+
+      refs.summaryDistance.textContent = fmtMeters(total);
+      refs.swimmerNameBox.textContent = name;
+      refs.roundLength.textContent = fmtMeters(roundLength());
+      refs.heroHeadline.textContent = `${name}'s swimming progress:`;
+
+      // Last achieved target
+      let lastAchieved = null;
+      for (const t of all) {
+        if (total >= t.cumulative) lastAchieved = t;
+      }
+      refs.lastAchievementEl.textContent = lastAchieved ? lastAchieved.name : '—';
+
+      // Next target
+      const next = all.find(t => total < t.cumulative);
+      refs.nextTargetEl.textContent = next ? next.name : '✓ All done!';
+
+      // Facts
+      const sessions = state.entries.length;
+      refs.sessionsEl.textContent = `${sessions} session${sessions !== 1 ? 's' : ''}`;
+
+      const avg = sessions > 0 ? Math.round(total / sessions) : 0;
+      refs.avgEl.textContent = `${fmtMeters(avg)} avg`;
+
+      const toNext = next ? Math.max(0, next.cumulative - total) : 0;
+      refs.toNextEl.textContent = next ? `${fmtMeters(toNext)} to go` : 'All done!';
     }
 
     function createMarker(posPct, cls, label) {
@@ -395,35 +666,17 @@
 
     function updateProgressBar() {
       clearMarkers();
+      const SCALE = 0.88; // target marker sits at 88% of bar; 12% gray buffer remains
       const all = cumulativeTargets();
-      const finalGoal = all[all.length - 1].cumulative;
       const total = totalDistance();
-      const progressPct = Math.max(0, Math.min(100, (total / finalGoal) * 100));
-      refs.waveFill.style.width = `${progressPct}%`;
 
       let lastAchievedIndex = -1;
       for (let i = 0; i < all.length; i++) {
         if (total >= all[i].cumulative) lastAchievedIndex = i;
       }
-      const nextIndex = Math.min(all.length - 1, lastAchievedIndex + 1);
-
-      all.forEach((target, i) => {
-        const pos = (target.cumulative / finalGoal) * 100;
-        const achieved = total >= target.cumulative;
-        const isOldAchieved = achieved && i < lastAchievedIndex - 1;
-        const cls = achieved ? `achieved${isOldAchieved ? ' old' : ''}` : 'upcoming';
-        createMarker(pos, cls, `${target.name} - ${fmtMeters(target.distance)}`);
-      });
-
-      let swimmerPct = progressPct;
-      const firstHalfReached = total >= TARGETS[0].distance / 2;
-      refs.swimmer.classList.toggle('zoomed', firstHalfReached);
-      if (firstHalfReached) swimmerPct = Math.max(33, Math.min(66, swimmerPct));
-      refs.swimmer.style.left = `${swimmerPct}%`;
 
       const segmentStartIndex = lastAchievedIndex;
       const segmentEndIndex = Math.min(all.length - 1, segmentStartIndex + 1);
-      const startName = segmentStartIndex < 0 ? 'Start' : all[segmentStartIndex].name;
       const startDist = segmentStartIndex < 0 ? 0 : all[segmentStartIndex].cumulative;
       const endName = all[segmentEndIndex].name;
       const endDist = all[segmentEndIndex].cumulative;
@@ -431,24 +684,31 @@
       const inSegment = Math.max(0, total - startDist);
       const segmentPct = Math.min(100, (inSegment / segmentLength) * 100);
 
-      if (lastAchievedIndex >= 0) {
-        const prevStartName = lastAchievedIndex === 0 ? 'Start' : all[lastAchievedIndex - 1].name;
-        const prevStartDist = lastAchievedIndex === 0 ? 0 : all[lastAchievedIndex - 1].cumulative;
-        const prevLen = all[lastAchievedIndex].cumulative - prevStartDist;
-        refs.lastAchievedInfo.textContent = `${prevStartName} to ${all[lastAchievedIndex].name} - ${fmtMeters(prevLen)} - 100%`;
-      } else {
-        refs.lastAchievedInfo.textContent = 'Last achieved: none yet';
-      }
+      const fillPct = segmentPct * SCALE;
+      refs.waveFill.style.width = `${fillPct}%`;
 
-      refs.nextTargetInfo.textContent = `${startName} to ${endName} - ${fmtMeters(segmentLength)} - ${segmentPct.toFixed(0)}%`;
+      const swimPos = Math.max(1, Math.min(SCALE * 100 - 1, fillPct));
+      refs.swimmer.style.left = `${swimPos}%`;
+      refs.swimmerNameBox.style.left = `${swimPos}%`;
+      refs.swimmerNameBox.textContent = state.name.trim() || 'Swimmer';
+
+      refs.targetTooltipBox.textContent = `${endName} \u2014 ${fmtMeters(endDist)}`;
     }
 
     function renderTargets() {
       refs.targetsList.innerHTML = '';
-      TARGETS.forEach(t => {
+      const total = totalDistance();
+      const all = cumulativeTargets();
+      all.forEach(t => {
+        const done = total >= t.cumulative;
+        const pct = Math.min(100, Math.round((total / t.cumulative) * 100));
         const row = document.createElement('div');
         row.className = 'target-row';
-        row.innerHTML = `<span>${t.name}</span><span>${fmtMeters(t.distance)}</span>`;
+        row.innerHTML = `
+          <div class="target-check ${done ? 'done' : ''}">${done ? '✓' : ''}</div>
+          <span class="target-name">${t.name}</span>
+          <span class="target-pct">${pct}%</span>
+          <span class="target-dist">${fmtMeters(t.cumulative)}</span>`;
         refs.targetsList.appendChild(row);
       });
     }
@@ -465,6 +725,7 @@
       renderEntries();
       updateSummary();
       updateProgressBar();
+      renderTargets();
     }
 
     function removeEntry(id) {
@@ -473,15 +734,15 @@
       renderEntries();
       updateSummary();
       updateProgressBar();
+      renderTargets();
     }
 
     function renderEntries() {
       refs.entriesList.innerHTML = '';
       if (!state.entries.length) {
         const empty = document.createElement('div');
-        empty.style.color = '#667992';
-        empty.style.fontSize = '0.92rem';
-        empty.textContent = 'No entries yet. Add your first swim day.';
+        empty.className = 'empty-entries';
+        empty.textContent = 'No sessions yet. Add your first swim day.';
         refs.entriesList.appendChild(empty);
         return;
       }
@@ -510,8 +771,9 @@
 
           const del = document.createElement('button');
           del.type = 'button';
-          del.className = 'danger';
-          del.textContent = 'Delete';
+          del.className = 'btn-danger';
+          del.textContent = '✕';
+          del.title = 'Delete session';
           del.addEventListener('click', () => removeEntry(entry.id));
 
           row.append(date, rounds, distance, del);
@@ -529,6 +791,7 @@
       renderEntries();
       updateSummary();
       updateProgressBar();
+      renderTargets();
     }
 
     function bindInputs() {
@@ -539,6 +802,7 @@
         state.name = e.target.value;
         saveState();
         updateSummary();
+        updateProgressBar();
       });
 
       refs.poolLength.addEventListener('input', e => {
@@ -547,6 +811,7 @@
         renderEntries();
         updateSummary();
         updateProgressBar();
+        renderTargets();
       });
 
       refs.addEntryBtn.addEventListener('click', addEntry);
