@@ -45,7 +45,8 @@
 
     .progress-container {
       position: relative;
-      padding-top: 30px;
+      padding-top: 58px;
+      padding-bottom: 44px;
     }
 
     .wave-track {
@@ -53,7 +54,6 @@
       height: 8px;
       border-radius: 4px;
       background: #e8eef5;
-      overflow: hidden;
       border: 1px solid #d6e1ef;
       box-shadow: inset -120px 0 60px -20px #ffffff;
     }
@@ -90,38 +90,93 @@
 
     .swimmer {
       position: absolute;
-      top: 2px;
+      top: 38px;
       transform: translateX(-50%) scaleX(-1);
       transition: left 0.55s ease;
       font-size: 1.35rem;
       filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25));
       user-select: none;
       line-height: 1;
+      z-index: 3;
     }
 
-    .bar-tooltip {
-      margin-top: 10px;
-      font-size: 0.875rem;
-      line-height: 1.6;
-    }
-
-    .tooltip-swimmer {
+    .swimmer-name-box {
+      position: absolute;
+      top: 6px;
+      transform: translateX(-50%);
+      background: #ffffff;
+      border: 1px solid #d6e1ef;
+      border-radius: 6px;
+      padding: 2px 8px;
+      font-size: 0.72rem;
       font-weight: 700;
-      font-size: 0.92rem;
       color: var(--text);
+      white-space: nowrap;
+      box-shadow: 0 1px 5px rgba(16, 33, 58, 0.1);
+      transition: left 0.55s ease;
+      z-index: 3;
+      pointer-events: none;
     }
 
-    .tooltip-segment {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      color: #4d5d75;
-      flex-wrap: wrap;
+    .start-flag {
+      position: absolute;
+      left: 0;
+      top: 26px;
+      width: 16px;
+      height: 36px;
+      pointer-events: none;
+      z-index: 2;
     }
 
-    .tooltip-arrow {
-      color: var(--blue);
-      font-weight: 600;
+    .flag-pole {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 2px;
+      height: 36px;
+      background: #4d5d75;
+      border-radius: 1px;
+    }
+
+    .flag-banner {
+      position: absolute;
+      left: 2px;
+      top: 0;
+      width: 13px;
+      height: 10px;
+      background: var(--green);
+      border-radius: 0 3px 3px 0;
+    }
+
+    .target-marker {
+      position: absolute;
+      left: 88%;
+      top: 62px;
+      transform: translate(-50%, -50%);
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 2px solid var(--blue);
+      box-shadow: 0 0 0 3px rgba(28, 158, 255, 0.18);
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .target-tooltip-box {
+      position: absolute;
+      left: 88%;
+      top: 72px;
+      transform: translateX(-50%);
+      background: #e8eef5;
+      border: 1px solid #cdd8e8;
+      border-radius: 6px;
+      padding: 2px 8px;
+      font-size: 0.72rem;
+      color: #3f5069;
+      white-space: nowrap;
+      z-index: 2;
+      pointer-events: none;
     }
 
     .meta {
@@ -235,16 +290,14 @@
         <div class="wave-track" id="waveTrack">
           <div class="wave-fill" id="waveFill"></div>
         </div>
-        <div class="swimmer" id="swimmer" aria-hidden="true">🏊</div>
-      </div>
-
-      <div class="bar-tooltip">
-        <div class="tooltip-swimmer" id="tooltipSwimmer">🏊 Swimmer - 0m</div>
-        <div class="tooltip-segment">
-          <span id="tooltipLast">Start - 0m</span>
-          <span class="tooltip-arrow"> → </span>
-          <span id="tooltipNext">Malcesine E to W - 3200m</span>
+        <div class="start-flag" aria-hidden="true">
+          <div class="flag-pole"></div>
+          <div class="flag-banner"></div>
         </div>
+        <div class="swimmer-name-box" id="swimmerNameBox">Swimmer</div>
+        <div class="swimmer" id="swimmer" aria-hidden="true">🏊</div>
+        <div class="target-marker" id="targetMarker" aria-hidden="true"></div>
+        <div class="target-tooltip-box" id="targetTooltipBox">Malcesine E to W — 3200m</div>
       </div>
 
       <div class="meta">
@@ -308,12 +361,11 @@
       waveFill: document.getElementById('waveFill'),
       waveTrack: document.getElementById('waveTrack'),
       swimmer: document.getElementById('swimmer'),
+      swimmerNameBox: document.getElementById('swimmerNameBox'),
+      targetTooltipBox: document.getElementById('targetTooltipBox'),
       summaryName: document.getElementById('summaryName'),
       summaryDistance: document.getElementById('summaryDistance'),
       summaryPercent: document.getElementById('summaryPercent'),
-      tooltipSwimmer: document.getElementById('tooltipSwimmer'),
-      tooltipLast: document.getElementById('tooltipLast'),
-      tooltipNext: document.getElementById('tooltipNext'),
       targetsList: document.getElementById('targetsList')
     };
 
@@ -369,10 +421,12 @@
       const all = cumulativeTargets();
       const finalGoal = all[all.length - 1].cumulative;
       const pct = Math.min(100, (total / finalGoal) * 100);
-      refs.summaryName.textContent = state.name.trim() || 'Swimmer';
+      const name = state.name.trim() || 'Swimmer';
+      refs.summaryName.textContent = name;
       refs.summaryDistance.textContent = `${fmtMeters(total)} total`;
       refs.summaryPercent.textContent = `${pct.toFixed(1)}% of ${fmtMeters(finalGoal)}`;
       refs.roundLength.value = fmtMeters(roundLength());
+      refs.swimmerNameBox.textContent = name;
     }
 
     function createMarker(posPct, cls, label) {
@@ -389,6 +443,7 @@
 
     function updateProgressBar() {
       clearMarkers();
+      const SCALE = 0.88; // target marker sits at 88% of bar; 12% gray buffer remains
       const all = cumulativeTargets();
       const total = totalDistance();
 
@@ -399,7 +454,6 @@
 
       const segmentStartIndex = lastAchievedIndex;
       const segmentEndIndex = Math.min(all.length - 1, segmentStartIndex + 1);
-      const startName = segmentStartIndex < 0 ? 'Start' : all[segmentStartIndex].name;
       const startDist = segmentStartIndex < 0 ? 0 : all[segmentStartIndex].cumulative;
       const endName = all[segmentEndIndex].name;
       const endDist = all[segmentEndIndex].cumulative;
@@ -407,13 +461,15 @@
       const inSegment = Math.max(0, total - startDist);
       const segmentPct = Math.min(100, (inSegment / segmentLength) * 100);
 
-      refs.waveFill.style.width = `${segmentPct}%`;
-      refs.swimmer.style.left = `${Math.max(2, Math.min(98, segmentPct))}%`;
+      const fillPct = segmentPct * SCALE;
+      refs.waveFill.style.width = `${fillPct}%`;
 
-      const name = state.name.trim() || 'Swimmer';
-      refs.tooltipSwimmer.textContent = `🏊 ${name} - ${fmtMeters(total)}`;
-      refs.tooltipLast.textContent = `${startName} - ${fmtMeters(startDist)}`;
-      refs.tooltipNext.textContent = `${endName} - ${fmtMeters(endDist)}`;
+      const swimPos = Math.max(1, Math.min(SCALE * 100 - 1, fillPct));
+      refs.swimmer.style.left = `${swimPos}%`;
+      refs.swimmerNameBox.style.left = `${swimPos}%`;
+      refs.swimmerNameBox.textContent = state.name.trim() || 'Swimmer';
+
+      refs.targetTooltipBox.textContent = `${endName} \u2014 ${fmtMeters(endDist)}`;
     }
 
     function renderTargets() {
