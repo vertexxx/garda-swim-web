@@ -232,6 +232,10 @@
       text-overflow: ellipsis;
     }
 
+    .achieved-tooltip-box.tooltip-raised {
+      top: 28px;
+    }
+
     /* ── Stats row ── */
     .stats-row {
       display: grid;
@@ -903,6 +907,7 @@
       refs.targetTooltipBox.textContent = next
         ? `${next.name} \u2014 ${fmtMeters(next.cumulative)}`
         : `Finish \u2014 ${fmtMeters(trackMax)}`;
+      refs.achievedTooltipBox.classList.remove('tooltip-raised');
 
       if (lastAchievedIndex >= 0) {
         const lastAchieved = all[lastAchievedIndex];
@@ -911,6 +916,9 @@
         refs.achievedTooltipBox.style.display = '';
         refs.achievedMarker.style.left = `${achievedPos}%`;
         placeTooltip(refs.achievedTooltipBox, achievedPos);
+        if (Math.abs(targetPos - achievedPos) < 14) {
+          refs.achievedTooltipBox.classList.add('tooltip-raised');
+        }
         refs.achievedTooltipBox.textContent = `${lastAchieved.name} \u2014 ${fmtMeters(lastAchieved.cumulative)}`;
       } else {
         refs.achievedMarker.style.display = 'none';
