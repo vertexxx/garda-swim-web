@@ -55,23 +55,35 @@
       padding: 28px 24px 24px;
     }
 
-    .hero-header {
+    .page-title {
       text-align: center;
-      margin-bottom: 24px;
     }
 
-    .hero-header h1 {
+    .page-title h1 {
       margin: 0 0 5px;
-      font-size: 1.7rem;
+      font-size: 1.85rem;
       font-weight: 800;
-      letter-spacing: -0.025em;
-      color: #fff;
+      letter-spacing: -0.03em;
+      color: var(--text);
     }
 
-    .hero-header p {
+    .page-title p {
       margin: 0;
       font-size: 0.85rem;
-      color: rgba(255, 255, 255, 0.45);
+      color: var(--muted);
+    }
+
+    .hero-headline {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .hero-headline h2 {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.9);
+      letter-spacing: -0.01em;
     }
 
     /* ── Progress bar ── */
@@ -420,7 +432,8 @@
       .wrap { padding: 14px 10px 36px; gap: 10px; }
       .card { padding: 18px 16px; }
       .card-hero { padding: 22px 16px 18px; }
-      .hero-header h1 { font-size: 1.45rem; }
+      .page-title h1 { font-size: 1.55rem; }
+      .hero-headline h2 { font-size: 0.92rem; }
       .stats-row { gap: 7px; }
       .stat { padding: 10px 4px; }
       .stat-value { font-size: 0.85rem; }
@@ -435,11 +448,16 @@
 <body>
   <main class="wrap">
 
+    <!-- Page title (above dark card) -->
+    <div class="page-title">
+      <h1>Garda Swim 🌊</h1>
+      <p>Track your training across Lake Garda</p>
+    </div>
+
     <!-- Section 1: Hero — progress bar + stats -->
     <section class="card card-hero">
-      <div class="hero-header">
-        <h1>Garda Swim 🌊</h1>
-        <p>Track your training across Lake Garda</p>
+      <div class="hero-headline">
+        <h2 id="heroHeadline">Swimmer's swimming progress:</h2>
       </div>
 
       <div class="progress-container">
@@ -538,6 +556,7 @@
       swimmerNameBox: document.getElementById('swimmerNameBox'),
       targetTooltipBox: document.getElementById('targetTooltipBox'),
       summaryDistance: document.getElementById('summaryDistance'),
+      heroHeadline: document.getElementById('heroHeadline'),
       lastAchievementEl: document.getElementById('lastAchievementEl'),
       nextTargetEl: document.getElementById('nextTargetEl'),
       sessionsEl: document.getElementById('sessionsEl'),
@@ -601,6 +620,7 @@
       refs.summaryDistance.textContent = fmtMeters(total);
       refs.swimmerNameBox.textContent = name;
       refs.roundLength.value = fmtMeters(roundLength());
+      refs.heroHeadline.textContent = `${name}'s swimming progress:`;
 
       // Last achieved target
       let lastAchieved = null;
