@@ -835,7 +835,7 @@
       const all = cumulativeTargets();
       const name = state.name.trim() || 'Swimmer';
 
-      refs.summaryDistance.textContent = fmtMeters(total);
+      refs.summaryDistance.textContent = `${fmtMeters(total)} (${fmtRounds(total)})`;
       refs.swimmerNameBox.textContent = name;
       refs.roundLength.textContent = fmtMeters(roundLength());
       refs.heroHeadline.textContent = `${name}'s swimming progress:`;
@@ -884,14 +884,14 @@
       const all = cumulativeTargets();
       const total = totalDistance();
       const finalTarget = all[all.length - 1];
-      const trackMax = finalTarget ? finalTarget.cumulative : 1;
+      const next = all.find(t => total < t.cumulative);
+      const trackMax = next ? next.cumulative : (finalTarget ? finalTarget.cumulative : 1);
 
       let lastAchievedIndex = -1;
       for (let i = 0; i < all.length; i++) {
         if (total >= all[i].cumulative) lastAchievedIndex = i;
       }
 
-      const next = all.find(t => total < t.cumulative);
       const fillPct = scaledTrackPct(total, trackMax, SCALE);
       refs.waveFill.style.width = `${fillPct}%`;
 
