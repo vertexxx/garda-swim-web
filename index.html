@@ -622,19 +622,52 @@
 
     .entries-list { margin-top: 10px; }
 
+    .entries-columns {
+      display: grid;
+      grid-template-columns: 132px 86px 88px auto;
+      gap: 8px;
+      align-items: center;
+      margin-top: 10px;
+      margin-bottom: 6px;
+      padding: 0 2px;
+      font-size: 0.66rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #8a9caf;
+    }
+
+    .entries-columns span:nth-child(2),
+    .entries-columns span:nth-child(3) {
+      text-align: right;
+    }
+
     .entry {
       display: grid;
-      grid-template-columns: 1fr 90px auto auto;
+      grid-template-columns: 132px 86px 88px auto;
       gap: 8px;
       margin-bottom: 8px;
       align-items: center;
+    }
+
+    .entry input[type="date"] {
+      width: 132px;
+      max-width: 100%;
+    }
+
+    .entry input[type="number"] {
+      width: 86px;
+      justify-self: end;
+      text-align: right;
     }
 
     .entry .distance {
       font-size: 0.82rem;
       color: var(--muted);
       text-align: right;
+      width: 88px;
       padding-right: 2px;
+      font-variant-numeric: tabular-nums;
     }
 
     .empty-entries {
@@ -657,8 +690,12 @@
       .stat-label { font-size: 0.58rem; }
       .settings-grid { grid-template-columns: 1fr 1fr; }
       .settings-grid .field:last-child { grid-column: 1 / -1; }
-      .entry { grid-template-columns: 1fr 80px auto; }
+      .entries-columns { grid-template-columns: 1fr 72px 70px auto; font-size: 0.62rem; }
+      .entry { grid-template-columns: 1fr 72px 70px auto; }
+      .entry input[type="date"] { width: 100%; }
+      .entry input[type="number"] { width: 72px; }
       .entry .distance { display: none; }
+      .entries-columns span:nth-child(3) { display: none; }
       .target-row { grid-template-columns: 20px minmax(0, 1fr); }
       .target-meta { grid-column: 2; justify-content: start; }
     }
@@ -742,6 +779,12 @@
       <div class="entries-header">
         <h2>Sessions</h2>
         <button id="addEntryBtn" type="button" class="btn-primary">+ Add session</button>
+      </div>
+      <div class="entries-columns" aria-hidden="true">
+        <span>Date</span>
+        <span>Rounds</span>
+        <span>Distance</span>
+        <span></span>
       </div>
       <div class="entries-list" id="entriesList"></div>
     </section>
