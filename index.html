@@ -631,7 +631,7 @@
 
     .entries-columns {
       display: grid;
-      grid-template-columns: 154px 82px 88px auto;
+      grid-template-columns: 35% 25% 25% 15%;
       gap: 8px;
       align-items: center;
       margin-top: 10px;
@@ -651,19 +651,19 @@
 
     .entry {
       display: grid;
-      grid-template-columns: 154px 82px 88px auto;
+      grid-template-columns: 35% 25% 25% 15%;
       gap: 8px;
       margin-bottom: 8px;
       align-items: center;
     }
 
     .entry input[type="date"] {
-      width: 154px;
-      max-width: 100%;
+      width: 100%;
+      min-width: 0;
     }
 
     .entry input[type="number"] {
-      width: 82px;
+      width: 100%;
       justify-self: end;
       text-align: right;
     }
@@ -672,9 +672,13 @@
       font-size: 0.82rem;
       color: var(--muted);
       text-align: right;
-      width: 88px;
+      width: 100%;
       padding-right: 2px;
       font-variant-numeric: tabular-nums;
+    }
+
+    .entry .btn-danger {
+      justify-self: center;
     }
 
     .empty-entries {
