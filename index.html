@@ -6,12 +6,19 @@
   <title>Garda Swim Progress</title>
   <style>
     :root {
-      --text: #0c1a2e;
-      --muted: #64748b;
-      --accent: #0ea5e9;
-      --accent-dark: #0284c7;
-      --accent-glow: rgba(14, 165, 233, 0.18);
-      --success: #10b981;
+      --text: #0d2538;
+      --muted: #5f7389;
+      --cool-100: #d8f4ff;
+      --cool-300: #72c9eb;
+      --cool-500: #1b89b8;
+      --cool-700: #0b5374;
+      --warm-300: #ffc26f;
+      --warm-500: #ff9f43;
+      --warm-700: #e6722d;
+      --accent: #1e90c2;
+      --accent-dark: #146d96;
+      --accent-glow: rgba(30, 144, 194, 0.2);
+      --success: #3ac48e;
       --danger: #ef4444;
       --line: #e2e8f0;
       --radius: 18px;
@@ -25,7 +32,10 @@
       margin: 0;
       font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       color: var(--text);
-      background: linear-gradient(150deg, #dbeafe 0%, #ede9fe 60%, #f0fdf4 100%);
+      background:
+        radial-gradient(1200px 500px at 85% -8%, rgba(255, 194, 111, 0.42), transparent 62%),
+        radial-gradient(1100px 460px at 8% 108%, rgba(114, 201, 235, 0.35), transparent 64%),
+        linear-gradient(160deg, #f7fcff 0%, #eef8fd 36%, #fff4e8 100%);
       min-height: 100vh;
     }
 
@@ -39,20 +49,33 @@
     }
 
     .card {
-      background: #ffffff;
+      background: linear-gradient(170deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.78));
       border-radius: var(--radius);
       padding: 22px 24px;
       box-shadow: var(--shadow-md);
-      border: 1px solid rgba(226, 232, 240, 0.7);
+      border: 1px solid rgba(215, 234, 244, 0.9);
     }
 
     /* ── Hero card ── */
     .card-hero {
-      background: linear-gradient(145deg, #0f172a 0%, #0c2d5e 55%, #1e1b4b 100%);
+      position: relative;
+      background:
+        radial-gradient(360px 180px at 90% 10%, rgba(255, 194, 111, 0.26), transparent 68%),
+        linear-gradient(155deg, #0b3f58 0%, #0a5a7e 45%, #0f6f93 100%);
       color: #fff;
       border: none;
-      box-shadow: 0 8px 32px rgba(12, 26, 46, 0.22), 0 0 0 1px rgba(14, 165, 233, 0.12);
+      box-shadow: 0 12px 36px rgba(10, 58, 82, 0.3), 0 0 0 1px rgba(114, 201, 235, 0.2);
       padding: 28px 24px 24px;
+      overflow: hidden;
+    }
+
+    .card-hero::after {
+      content: "";
+      position: absolute;
+      inset: auto -12% -50px;
+      height: 160px;
+      background: radial-gradient(70% 80px at 50% 0, rgba(183, 231, 248, 0.28), transparent 72%);
+      pointer-events: none;
     }
 
     .page-title {
@@ -84,8 +107,8 @@
       position: relative;
       height: 10px;
       border-radius: 5px;
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.07);
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(216, 244, 255, 0.25);
     }
 
     .wave-fill {
@@ -95,7 +118,7 @@
       max-width: 100%;
       border-radius: 5px;
       transition: width 0.55s cubic-bezier(.4, 0, .2, 1);
-      background: linear-gradient(90deg, #0ea5e9 0%, #38bdf8 65%, #7dd3fc 100%);
+      background: linear-gradient(90deg, #2aabd8 0%, #5fc6e7 58%, #9de5ff 100%);
       overflow: hidden;
     }
 
@@ -163,7 +186,7 @@
       position: absolute;
       left: 2px; top: 0;
       width: 12px; height: 8px;
-      background: var(--success);
+      background: var(--warm-500);
       border-radius: 0 3px 3px 0;
     }
 
@@ -175,8 +198,8 @@
       width: 13px; height: 13px;
       border-radius: 50%;
       background: #fff;
-      border: 2px solid var(--accent);
-      box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.22);
+      border: 2px solid var(--warm-500);
+      box-shadow: 0 0 0 4px rgba(255, 159, 67, 0.28);
       z-index: 2;
       pointer-events: none;
     }
@@ -207,7 +230,7 @@
       border-radius: 50%;
       background: var(--success);
       border: 2px solid var(--success);
-      box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.22);
+      box-shadow: 0 0 0 4px rgba(58, 196, 142, 0.24);
       z-index: 2;
       pointer-events: none;
     }
@@ -271,11 +294,11 @@
     }
 
     .stat-highlight {
-      background: rgba(14, 165, 233, 0.18);
-      border-color: rgba(14, 165, 233, 0.28);
+      background: rgba(255, 194, 111, 0.16);
+      border-color: rgba(255, 194, 111, 0.3);
     }
 
-    .stat-highlight .stat-value { color: #7dd3fc; }
+    .stat-highlight .stat-value { color: #ffd49b; }
 
     /* ── Hero headline row (with share button) ── */
     .hero-headline {
@@ -391,12 +414,20 @@
       color: rgba(255, 255, 255, 0.65);
     }
 
-    /* ── Achievements card ── */
-    .card-targets h2 {
+    /* ── Achievements (inside hero card) ── */
+    .hero-achievements {
+      margin-top: 18px;
+      padding: 14px;
+      border-radius: 14px;
+      background: linear-gradient(150deg, rgba(255, 255, 255, 0.14), rgba(255, 194, 111, 0.12));
+      border: 1px solid rgba(201, 236, 250, 0.24);
+    }
+
+    .hero-achievements h2 {
       margin: 0 0 12px;
       font-size: 0.95rem;
       font-weight: 700;
-      color: var(--text);
+      color: rgba(255, 255, 255, 0.94);
       letter-spacing: -0.01em;
     }
 
@@ -409,9 +440,9 @@
       gap: 10px;
       padding: 11px 14px;
       margin-bottom: 8px;
-      border: 1px solid rgba(16, 185, 129, 0.14);
+      border: 1px solid rgba(200, 236, 249, 0.28);
       border-radius: 14px;
-      background: rgba(15, 23, 42, 0.03);
+      background: rgba(6, 32, 46, 0.3);
       overflow: hidden;
       isolation: isolate;
       font-size: 0.87rem;
@@ -424,7 +455,7 @@
       position: absolute;
       inset: 0 auto 0 0;
       width: var(--target-progress);
-      background: linear-gradient(90deg, rgba(16, 185, 129, 0.22) 0%, rgba(16, 185, 129, 0.1) 100%);
+      background: linear-gradient(90deg, rgba(255, 194, 111, 0.36) 0%, rgba(95, 198, 231, 0.2) 100%);
       z-index: -1;
     }
 
@@ -442,20 +473,20 @@
     }
 
     .target-check.done {
-      background: var(--success);
-      border-color: var(--success);
+      background: var(--warm-500);
+      border-color: var(--warm-500);
       color: #fff;
     }
 
     .target-name {
       min-width: 0;
-      color: var(--text);
+      color: rgba(255, 255, 255, 0.9);
       font-weight: 500;
       line-height: 1.35;
     }
 
     .target-pct {
-      color: var(--success);
+      color: #ffd49b;
       font-size: 0.8rem;
       font-weight: 600;
     }
@@ -466,7 +497,7 @@
       gap: 8px;
       align-items: center;
       justify-content: end;
-      color: var(--muted);
+      color: rgba(216, 244, 255, 0.82);
       font-size: 0.8rem;
       font-variant-numeric: tabular-nums;
       white-space: nowrap;
@@ -671,15 +702,13 @@
         <div class="fact">📏 <span id="avgEl">0m avg</span></div>
         <div class="fact">🎯 <span id="toNextEl">3,200m to go</span></div>
       </div>
+      <div class="hero-achievements">
+        <h2>Achievements</h2>
+        <div id="targetsList"></div>
+      </div>
     </section>
 
-    <!-- Section 2: Achievements -->
-    <section class="card card-targets">
-      <h2>Achievements</h2>
-      <div id="targetsList"></div>
-    </section>
-
-    <!-- Section 3: Settings & sessions (hidden in shared view) -->
+    <!-- Section 2: Settings & sessions (hidden in shared view) -->
     <section class="card card-entries" id="entriesCard">
       <div class="settings-grid">
         <div class="field">
