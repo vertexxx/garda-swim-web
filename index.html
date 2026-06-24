@@ -805,6 +805,9 @@
       toastMsg: document.getElementById('toastMsg')
     };
 
+    const roundsCommitTimers = new Map();
+    const ROUNDS_COMMIT_DELAY_MS = 1800;
+
     function loadState() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
@@ -987,6 +990,35 @@
       });
     }
 
+    function commitRoundsUpdate(id, roundsValue) {
+      const timer = roundsCommitTimers.get(id);
+      if (timer) {
+        clearTimeout(timer);
+        roundsCommitTimers.delete(id);
+      }
+
+      const entry = state.entries.find(e => e.id === id);
+      if (!entry) return;
+      entry.rounds = Math.max(0, Number(roundsValue) || 0);
+
+      saveState();
+      updateSummary();
+      updateProgressBar();
+      renderTargets();
+    }
+
+    function scheduleRoundsCommit(id, roundsValue) {
+      const timer = roundsCommitTimers.get(id);
+      if (timer) clearTimeout(timer);
+      roundsCommitTimers.set(
+        id,
+        setTimeout(() => {
+          roundsCommitTimers.delete(id);
+          commitRoundsUpdate(id, roundsValue);
+        }, ROUNDS_COMMIT_DELAY_MS)
+      );
+    }
+
     function onEntryChange(id, field, value) {
       const entry = state.entries.find(e => e.id === id);
       if (!entry) return;
@@ -1037,7 +1069,22 @@
           rounds.min = '0';
           rounds.step = '1';
           rounds.value = String(entry.rounds);
-          rounds.addEventListener('input', e => onEntryChange(entry.id, 'rounds', e.target.value));
+          rounds.addEventListener('input', e => {
+            const value = Math.max(0, Number(e.target.value) || 0);
+            entry.rounds = value;
+            distance.textContent = fmtMeters(entryDistance(value));
+            scheduleRoundsCommit(entry.id, value);
+          });
+
+          rounds.addEventListener('blur', e => {
+            commitRoundsUpdate(entry.id, e.target.value);
+          });
+
+          rounds.addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+              e.target.blur();
+            }
+          });
 
           const distance = document.createElement('div');
           distance.className = 'distance';
